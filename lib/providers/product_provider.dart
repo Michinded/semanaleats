@@ -44,6 +44,17 @@ class ProductoProvider {
     }
   }
 
+  Future<Producto> getProductById(int id) async {
+    Database database = await openDatabase('semanaleats.db');
+    List<Map<String, dynamic>> productosMapList = await database.query(
+      'productos',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    await database.close();
+    return Producto.fromMap(productosMapList.first);
+  }
+
   Future<void> insertProducto(Producto producto) async {
     Database database = await openDatabase('semanaleats.db');
     await database.insert('productos', producto.toMap());
