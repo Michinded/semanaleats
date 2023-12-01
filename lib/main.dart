@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:semanaleats/pages/home/home_page.dart';
+import 'package:semanaleats/pages/products/create_product.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         'home': (BuildContext context) => HomePage(),
+        'create-product': (BuildContext context) => CreateProductPage(),
       },
     );
   }
