@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:semanaleats/pages/home/home_page.dart';
 import 'package:semanaleats/pages/products/create_product.dart';
+import 'package:semanaleats/pages/products/update_product.dart';
 
 void main() {
   runApp(const MyApp());
