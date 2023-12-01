@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:semanaleats/pages/products/update_product.dart';
 import 'package:semanaleats/providers/product_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -48,6 +49,54 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Callback para manejar la acción de actualizar
+  void _handleUpdateAction(int productId) {
+    // Navegar a la página de actualización o realizar cualquier acción necesaria
+    // Puedes pasar el ID a UpdateProductPage como argumento
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UpdateProductPage(productId: productId),
+      ),
+    ).then((_) {
+      // Lógica para recargar la lista después de actualizar
+      _loadProductos();
+    });
+  }
+
+  void deleteProducto(int id) async {
+    //Mostrar un diálogo de confirmación
+    bool confirmar = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Eliminar Producto'),
+        content: Text('¿Estás seguro de eliminar este producto?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            child: Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar) {
+      // Eliminar el producto
+      await ProductoProvider().deleteProducto(id);
+      // Actualizar la lista de productos
+      _loadProductos();
+    }else{
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,7 +136,7 @@ class _HomePageState extends State<HomePage> {
                   child: CircularProgressIndicator(),
                 ),
               ) :
-            _buildProductList(),
+            _buildProductList(context),
           ],
         ),
         _floatingActionButton(),
@@ -143,7 +192,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildProductList() {
+  Widget _buildProductList(BuildContext context) {
     return Expanded(
       child: FutureBuilder<List<Producto>>(
         // Define el futuro que carga los productos
@@ -166,24 +215,57 @@ class _HomePageState extends State<HomePage> {
                 // Alternar el color de fondo para cada tarjeta
                 Color? cardColor = index.isOdd ? Colors.blue[100] : Colors.blue[200];
 
-                return Card(
-                  margin: EdgeInsets.all(8.0),
-                  color: cardColor,
-                  child: ListTile(
-                    title: Text(productos[index].nombre, style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Cantidad: ${productos[index].cantidad}', style: TextStyle(fontWeight: FontWeight.bold)),
-                        SizedBox(height: 5.0),
-                        Text('Fecha de Actualización: ${productos[index].fechaActualizacion}', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    trailing: Text('ID: ${productos[index].id}', style: TextStyle(fontWeight: FontWeight.bold)),
-                    onTap: () {
-                      // Puedes agregar lógica para manejar la selección de la tarjeta
-                    },
+                return Slidable(
+                  key: const ValueKey(0),
+
+                  // The end action pane is the one at the right or the bottom side.
+                  endActionPane: ActionPane(
+                    motion: StretchMotion(),
+                    children: [
+                      SlidableAction(
+                        // An action can be bigger than the others.
+                        //flex: 2,
+                        onPressed: (context) {
+                          // Actualiza el producto
+                          _handleUpdateAction(productos[index].id!);
+                        },
+                        backgroundColor: Color(0xFF7BC043),
+                        foregroundColor: Colors.white,
+                        icon: Icons.swipe_up,
+                        label: 'Actualizar',
+                      ),
+                      SlidableAction(
+                       // flex: 2,
+                        onPressed: (context) {
+                          // Elimina el producto
+                          deleteProducto(productos[index].id!);
+                        },
+                        backgroundColor: Color(0xFFFE4A49),
+                        foregroundColor: Colors.white,
+                        icon: Icons.delete,
+                        label: 'Eliminar',
+                      ),
+                    ],
                   ),
+                    child: Card(
+                      margin: EdgeInsets.all(8.0),
+                      color: cardColor,
+                      child: ListTile(
+                        title: Text(productos[index].nombre, style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Cantidad: ${productos[index].cantidad}', style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: 5.0),
+                            Text('Fecha de Actualización: ${productos[index].fechaActualizacion}', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        trailing: Text('ID: ${productos[index].id}', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onTap: () {
+                          // Puedes agregar lógica para manejar la selección de la tarjeta
+                        },
+                      ),
+                    ),
                 );
               },
             );
@@ -192,4 +274,5 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
 }
