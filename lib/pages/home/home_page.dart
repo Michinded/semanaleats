@@ -14,18 +14,10 @@ class _HomePageState extends State<HomePage> {
   ProductoProvider _controller = ProductoProvider();
   List<Producto> productos = [];
 
-
-  //Ordenar de Az a Za
-  bool ordenarAZ = false;
-  //Ordenar por cantidad
-  bool ordenarPorCantidadAscendente = false;
-  //Ordenar por fecha de creación
-  bool ordenarPorFechaCreacionAscendente = false;
-  //Ordenar por fecha de actualización
-  bool ordenarPorFechaActualizacionAscendente = false;
-
   //Se esta cargando la lista de productos
   bool cargando = true;
+
+  String _searchText = '';
 
   @override
   void initState(){
@@ -35,7 +27,6 @@ class _HomePageState extends State<HomePage> {
     _loadProductos();
   }
 
-
   Future<void> _loadProductos() async {
     // Muestra el indicador de carga
     setState(() {
@@ -43,8 +34,16 @@ class _HomePageState extends State<HomePage> {
     });
     // Carga la lista de productos
     List<Producto> productosFromDB = await ProductoProvider().getProductos();
+    // Filtra la lista según el texto de búsqueda
+    List<Producto> productosFiltrados = productosFromDB.where((producto) {
+      return producto.nombre.toLowerCase().contains(_searchText.toLowerCase()) ||
+          producto.fechaCreacion.toLowerCase().contains(_searchText.toLowerCase()) ||
+          producto.fechaActualizacion.toLowerCase().contains(_searchText.toLowerCase()) ||
+          producto.cantidad.toString().contains(_searchText.toLowerCase());
+    }).toList();
+
     setState(() {
-      productos = productosFromDB;
+      productos = productosFiltrados;
       cargando = false;
     });
   }
@@ -56,38 +55,15 @@ class _HomePageState extends State<HomePage> {
         title: Text('Lista de Productos'),
         actions: [
           IconButton(
-            icon: Icon(Icons.sort_by_alpha),
-            onPressed: () {
-              // Implementa la lógica para ordenar AZ-ZA
-              setState(() {
-                ordenarAZ = !ordenarAZ;
-              });
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.sort),
-            onPressed: () {
-              // Implementa la lógica para ordenar por cantidad
-              setState(() {
-                ordenarPorCantidadAscendente = !ordenarPorCantidadAscendente;
-              });
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.date_range),
-            onPressed: () {
-              // Implementa la lógica para ordenar por fecha de creación
-              setState(() {
-                ordenarPorFechaCreacionAscendente = !ordenarPorFechaCreacionAscendente;
-              });
-            },
-          ),
-          IconButton(
             icon: Icon(Icons.update),
             onPressed: () {
-              // Implementa la lógica para ordenar por fecha de actualización
+              // Implementa la lógica para actualizar la lista de productos
               setState(() {
-                ordenarPorFechaActualizacionAscendente = !ordenarPorFechaActualizacionAscendente;
+                cargando = true;
+              });
+              _loadProductos();
+              setState(() {
+                cargando = false;
               });
             },
           ),
@@ -159,6 +135,9 @@ class _HomePageState extends State<HomePage> {
         onChanged: (value) {
           // Implementa la lógica de búsqueda según tu necesidad
           // Puedes filtrar la lista de productos y actualizar el estado
+          setState(() {
+            _searchText = value;
+          });
         },
       ),
     );
@@ -213,36 +192,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  /*
-  Widget _buildProductList() {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: productos.length,
-        itemBuilder: (context, index) {
-          // Alternar el color de fondo para cada tarjeta
-          Color? cardColor = index.isOdd ? Colors.blue[100] : Colors.blue[200];
-
-          return Card(
-            margin: EdgeInsets.all(8.0),
-            color: cardColor,
-            child: ListTile(
-              title: Text(productos[index].nombre, style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Cantidad: ${productos[index].cantidad}', style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 5.0),
-                  Text('Fecha de Actualización: ${productos[index].fechaActualizacion}', style: TextStyle(fontWeight: FontWeight.bold)),
-                ],
-              ),
-              trailing: Text('ID: ${productos[index].id}', style: TextStyle(fontWeight: FontWeight.bold)),
-              onTap: () {
-                // Puedes agregar lógica para manejar la selección de la tarjeta
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }*/
 }
